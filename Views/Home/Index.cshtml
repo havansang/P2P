@@ -1,0 +1,127 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<!-- Hero Section -->
+<section class="hero-section text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Quản lý giao dịch an toàn & bảo mật</h1>
+                <p class="lead mb-4">
+                    Chúng tôi đóng vai trò là bên trung gian đáng tin cậy giữa các bên, đảm bảo chuyển tiền an toàn
+                    với dịch vụ ký quỹ của chúng tôi. Giao dịch của bạn được bảo vệ trong mọi bước.
+                </p>
+                <div class="d-flex flex-column flex-sm-row gap-3">
+                    <a href="@Url.Action("Create", "Transaction")" class="btn btn-light btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i>Tạo giao dịch
+                    </a>
+                    <a href="@Url.Action("Claim", "Transaction")" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-key me-2"></i>Nhận tiền
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-handshake" style="font-size: 12rem; opacity: 0.9;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                <i class="fas fa-shield-alt text-primary mb-3" style="font-size: 3rem;"></i>
+                <h4>100% An toàn</h4>
+                <p class="text-muted">Tiền của bạn được bảo vệ với các biện pháp bảo mật cấp ngân hàng và mã hóa.</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <i class="fas fa-clock text-primary mb-3" style="font-size: 3rem;"></i>
+                <h4>Xử lý nhanh chóng</h4>
+                <p class="text-muted">Xử lý giao dịch nhanh chóng với cập nhật trạng thái và thông báo thời gian thực.</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <i class="fas fa-users text-primary mb-3" style="font-size: 3rem;"></i>
+                <h4>Được hàng ngàn người tin tưởng</h4>
+                <p class="text-muted">Tham gia cùng hàng ngàn khách hàng hài lòng tin tưởng chúng tôi với các giao dịch của họ.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Cách thức hoạt động</h2>
+            <p class="lead text-muted">Quy trình đơn giản, an toàn và rõ ràng</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3 col-md-6 text-center mb-4">
+                <div class="step-number mx-auto mb-3">1</div>
+                <h5>Tạo giao dịch</h5>
+                <p class="text-muted">Người A tạo giao dịch và chuyển tiền vào tài khoản ký quỹ an toàn của chúng tôi.</p>
+            </div>
+            <div class="col-lg-3 col-md-6 text-center mb-4">
+                <div class="step-number mx-auto mb-3">2</div>
+                <h5>Tạo mã giao dịch</h5>
+                <p class="text-muted">Hệ thống tạo mã giao dịch duy nhất mà Người A chia sẻ với Người B.</p>
+            </div>
+            <div class="col-lg-3 col-md-6 text-center mb-4">
+                <div class="step-number mx-auto mb-3">3</div>
+                <h5>Xác minh & Nhận</h5>
+                <p class="text-muted">Người B nhập mã giao dịch để xác minh và nhận tiền.</p>
+            </div>
+            <div class="col-lg-3 col-md-6 text-center mb-4">
+                <div class="step-number mx-auto mb-3">4</div>
+                <h5>Giải ngân</h5>
+                <p class="text-muted">Sau khi xác minh, tiền sẽ được tự động chuyển vào tài khoản của Người B.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Actions Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Bắt đầu ngay</h2>
+            <p class="lead text-muted">Chọn hành động của bạn để bắt đầu giao dịch an toàn</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus-circle text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h4 class="card-title">Tạo giao dịch mới</h4>
+                        <p class="card-text text-muted">
+                            Bắt đầu giao dịch ký quỹ mới và nhận mã duy nhất để chia sẻ với người nhận.
+                        </p>
+                        <a href="@Url.Action("Create", "Transaction")" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus-circle me-2"></i>Tạo giao dịch
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-key text-success mb-3" style="font-size: 3rem;"></i>
+                        <h4 class="card-title">Nhận giao dịch</h4>
+                        <p class="card-text text-muted">
+                            Có mã giao dịch? Nhập mã ở đây để nhận tiền của bạn một cách an toàn.
+                        </p>
+                        <a href="@Url.Action("Claim", "Transaction")" class="btn btn-success btn-lg">
+                            <i class="fas fa-key me-2"></i>Nhận tiền
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

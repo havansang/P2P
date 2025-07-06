@@ -1,0 +1,141 @@
+﻿@model SecureEscrow.Models.ClaimTransactionViewModel
+
+@{
+    ViewData["Title"] = "Nhận giao dịch";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h1 class="display-5 fw-bold">Nhận giao dịch</h1>
+                <p class="lead text-muted">Nhập mã giao dịch của bạn để xác minh và nhận tiền</p>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-key me-2"></i>Xác minh giao dịch
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @Model.ErrorMessage
+                        </div>
+                    }
+
+                    @if (!Model.IsVerified)
+                    {
+                        <!-- Verification Form -->
+                        <form asp-action="Verify" method="post">
+                            <div class="mb-3">
+                                <label asp-for="TransactionKey" class="form-label"></label>
+                                <input asp-for="TransactionKey" class="form-control" placeholder="Nhập mã giao dịch được cung cấp bởi người gửi" style="font-family: monospace; font-size: 1.1rem;" />
+                                <span asp-validation-for="TransactionKey" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-search me-2"></i>Xác minh mã giao dịch
+                                </button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- Transaction Verified - Show Details and Claim Form -->
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Giao dịch đã được xác minh!</strong>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Số tiền:</strong> @Model.VerifiedTransaction.Amount.ToString("N0") VNĐ</p>
+                                    <p class="mb-1"><strong>Người nhận:</strong> @Model.VerifiedTransaction.RecipientName</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1">
+                                        <strong>Trạng thái:</strong>
+                                        <span class="badge bg-info">@Model.VerifiedTransaction.Status</span>
+                                    </p>
+                                    <p class="mb-1"><strong>Ngày tạo:</strong> @Model.VerifiedTransaction.CreatedAt.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.VerifiedTransaction.Status == TransactionStatus.Paid)
+                        {
+                            <!-- Claim Form -->
+                            <hr class="my-4">
+                            <h5 class="mb-3">Chi tiết nhận tiền</h5>
+
+                            <form asp-action="Claim" method="post">
+                                <input type="hidden" asp-for="TransactionKey" />
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="RecipientName" class="form-label"></label>
+                                        <input asp-for="RecipientName" class="form-control" placeholder="Nhập tên đầy đủ của bạn" />
+                                        <span asp-validation-for="RecipientName" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="RecipientEmail" class="form-label"></label>
+                                        <input asp-for="RecipientEmail" class="form-control" placeholder="email@example.com" />
+                                        <span asp-validation-for="RecipientEmail" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="BankAccount" class="form-label"></label>
+                                    <input asp-for="BankAccount" class="form-control" placeholder="Nhập số tài khoản ngân hàng của bạn" />
+                                    <span asp-validation-for="BankAccount" class="text-danger"></span>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="fas fa-unlock me-2"></i>Xác minh & Nhận tiền
+                                    </button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <!-- Transaction not ready for claim -->
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                @switch (Model.VerifiedTransaction.Status)
+                                {
+                                    case TransactionStatus.Pending:
+                                        @:Giao dịch vẫn đang chờ xử lý thanh toán.
+                                        break;
+                                    case TransactionStatus.Completed:
+                                        @:Giao dịch này đã được nhận.
+                                        break;
+                                    default:
+                                        @:Giao dịch không hợp lệ.
+                                        break;
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Lưu ý:</strong> Đảm bảo rằng thông tin bạn nhập khớp với thông tin được cung cấp bởi người gửi.
+                    Sau khi xác minh thành công, tiền sẽ được chuyển vào tài khoản của bạn trong vòng 24 giờ.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

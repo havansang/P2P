@@ -1,0 +1,93 @@
+﻿@model SecureEscrow.Models.Transaction
+
+@{
+    ViewData["Title"] = "Giao dịch thành công";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Giao dịch đã được tạo thành công!
+                    </h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-party-horn text-success" style="font-size: 4rem;"></i>
+                    </div>
+
+                    <h4 class="mb-4">Mã giao dịch của bạn là:</h4>
+
+                    <div class="transaction-key-display mb-4">
+                        @Model.TransactionKey
+                    </div>
+
+                    <p class="text-muted mb-4">
+                        Chia sẻ mã này với người nhận để họ có thể hoàn tất giao dịch.
+                    </p>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <button class="btn btn-primary w-100" onclick="copyTransactionKey()">
+                                <i class="fas fa-copy me-2"></i>Sao chép mã
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-success w-100" onclick="shareTransactionKey()">
+                                <i class="fas fa-share me-2"></i>Chia sẻ
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Thông tin quan trọng:</strong>
+                        <ul class="list-unstyled mb-0 mt-2">
+                            <li>• Giao dịch sẽ được xử lý trong vòng 2-3 phút</li>
+                            <li>• Người nhận có thể nhận tiền khi giao dịch đã được thanh toán</li>
+                            <li>• Bạn có thể theo dõi trạng thái giao dịch trong lịch sử</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="@Url.Action("Transactions", "Home")" class="btn btn-outline-primary">
+                            <i class="fas fa-history me-2"></i>Xem lịch sử
+                        </a>
+                        <a href="@Url.Action("Create", "Transaction")" class="btn btn-outline-secondary">
+                            <i class="fas fa-plus me-2"></i>Tạo giao dịch khác
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyTransactionKey() {
+            const transactionKey = '@Model.TransactionKey';
+            navigator.clipboard.writeText(transactionKey).then(function() {
+                alert('Mã giao dịch đã được sao chép!');
+            }, function(err) {
+                console.error('Không thể sao chép: ', err);
+            });
+        }
+
+        function shareTransactionKey() {
+            const transactionKey = '@Model.TransactionKey';
+            const shareText = `Mã giao dịch SecureEscrow của bạn: ${transactionKey}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Mã giao dịch SecureEscrow',
+                    text: shareText,
+                });
+            } else {
+                copyTransactionKey();
+            }
+        }
+    </script>
+}
