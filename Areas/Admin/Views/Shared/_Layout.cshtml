@@ -1,0 +1,123 @@
+﻿@{
+    Layout = null;
+    var FullName = Context.Session.GetString("FullName") ?? "admin";
+    var Id = Context.Session.GetInt32("AccountId");
+    var Role = Context.Session.GetInt32("AccountRole");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+
+        #sidebar {
+            width: 250px;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+            #sidebar.hide {
+                transform: translateX(-100%);
+            }
+
+        .sidebar-link {
+            padding: 12px 20px;
+            display: block;
+            font-weight: 500;
+            color: #333;
+            text-decoration: none;
+        }
+
+            .sidebar-link:hover, .sidebar-link.active {
+                background-color: #e9ecef;
+                color: #0d6efd;
+            }
+
+        .header {
+            height: 103px;
+            background-color: #fff;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+        }
+
+        .sidebar-header {
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+            .sidebar-header h5 {
+                margin: 0;
+            }
+    </style>
+</head>
+<body>
+    <div class="d-flex" style="height: 100vh;">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="bg-white border-end position-fixed">
+            <div class="sidebar-header">
+                <h5 class="text-primary fw-bold">ADMIN VIP PRO</h5>
+            </div>
+            <div class="pt-3">
+                <a href="@Url.Action("Index", "Dashboard")" class="sidebar-link"><i class="fas fa-chart-line me-2"></i> Dashboard</a>
+                <a href="@Url.Action("Index", "Transaction")" class="sidebar-link"><i class="fas fa-money-check-alt me-2"></i> Các giao dịch</a>
+                <a href="@Url.Action("Index", "Account")" class="sidebar-link"><i class="fas fa-user me-2"></i> Tài khoản</a>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <div class="flex-grow-1 d-flex flex-column" style="margin-left: 250px; height: 100vh; overflow: hidden;">
+            <!-- Header -->
+            <div class="header">
+                <button class="btn btn-sm btn-outline-primary d-md-none me-auto" id="toggleSidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="dropdown">
+                    <a class="d-flex align-items-center text-decoration-none dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-2 text-primary"></i>
+                        <span>@FullName</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="@Url.Action("", "")">Hồ sơ của tôi</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="@Url.Action("Logout", "Home", new { area = "" })">Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Body content -->
+            <main style="overflow-y: auto; flex-grow: 1; padding: 24px;">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $("#toggleSidebar").click(function () {
+            $('#sidebar').toggleClass('hide');
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

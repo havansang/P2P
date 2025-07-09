@@ -1,0 +1,102 @@
+﻿@{
+    ViewData["Title"] = "Lịch sử giao dịch";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-primary">📜 Lịch sử giao dịch</h2>
+
+    <!-- Bộ lọc ngày -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <label for="fromDate" class="form-label">Từ ngày</label>
+            <input type="date" id="fromDate" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label for="toDate" class="form-label">Đến ngày</label>
+            <input type="date" id="toDate" class="form-control" />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button id="filterBtn" class="btn btn-success w-100">🔍 Tìm kiếm</button>
+        </div>
+    </div>
+
+    <!-- Bảng giao dịch -->
+    <div class="table-responsive shadow-sm rounded-4">
+        <table class="table table-bordered table-hover text-center align-middle" id="historyTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>Mã GD</th>
+                    <th>Ngày tạo</th>
+                    <th>Số tiền</th>
+                    <th>Vai trò</th>
+                    <th>Ngày hết hạn</th>
+                    <th>Mô tả</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody">
+                <tr><td colspan="7">⏳ Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function loadHistory() {
+                const from = $('#fromDate').val();
+                const to = $('#toDate').val();
+
+                $.ajax({
+                    url: '/Transaction/TransactionHistory',
+                    type: 'POST',
+                    data: {
+                        fromDate: from,
+                        toDate: to
+                    },
+                    success: function (res) {
+                        const tbody = $('#historyBody');
+                        tbody.empty();
+                        if (res.success) {
+                            console.log("Dữ liệu nhận được:", res);
+                            if (res.data.length === 0) {
+                                tbody.append('<tr><td colspan="7" class="text-muted">Không có giao dịch nào!</td></tr>');
+                            } else {
+                                res.data.forEach(tran => {
+                                    const amountText = tran.amount !== undefined && tran.amount !== null
+                                        ? tran.amount.toLocaleString() + " VND"
+                                        : "N/A";
+
+                                    const expireDateText = tran.expireDate ?? "-";
+                                    const descriptionText = tran.description ?? "-";
+
+                                    const row = `
+                                        <tr>
+                                            <td>${tran.transactionId}</td>
+                                            <td>${tran.createdDate}</td>
+                                            <td class="text-danger fw-bold">${amountText}</td>
+                                            <td>${tran.isSender ? "🔼 Người gửi" : "🔽 Người nhận"}</td>
+                                            <td>${expireDateText}</td>
+                                            <td>${descriptionText}</td>
+                                            <td>${tran.status}</td>
+                                        </tr>`;
+                                    tbody.append(row);
+                                });
+                            }
+                        } else {
+                            tbody.append('<tr><td colspan="7" class="text-danger">Lỗi khi tải dữ liệu!</td></tr>');
+                        }
+                    },
+                    error: function () {
+                        $('#historyBody').html('<tr><td colspan="7" class="text-danger">Lỗi kết nối server.</td></tr>');
+                    }
+                });
+            }
+
+            $('#filterBtn').on('click', loadHistory);
+            loadHistory(); // Tải mặc định
+        });
+    </script>
+}

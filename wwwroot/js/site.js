@@ -1,4 +1,38 @@
-﻿// SecureEscrow JavaScript functionality
+﻿function showToast(message, type = "success") {
+    const toastId = "toast-" + Date.now();
+
+    let bgColor = "bg-success";
+    let iconHtml = '<i class="fas fa-check-circle me-2 text-white"></i>'; // Icon mặc định
+
+    if (type === "error" || type === "danger") {
+        bgColor = "bg-danger";
+        iconHtml = '<i class="fas fa-exclamation-triangle me-2 text-warning"></i>';
+    }
+
+    const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center text-white ${bgColor} border-0 show mb-2 shadow" role="alert" aria-live="assertive" aria-atomic="true"
+             style="min-width: 320px;">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center">
+                    ${iconHtml}
+                    <span>${message}</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>`;
+
+    $("#toast-container").append(toastHtml);
+
+    // Tự động ẩn sau 4 giây
+    setTimeout(() => {
+        $(`#${toastId}`).fadeOut(300, function () {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
+
+
 
 $(document).ready(function () {
     // Initialize tooltips
@@ -73,53 +107,23 @@ $(document).ready(function () {
         document.body.removeChild(textArea);
     }
 
-    // Toast notification system
-    window.showToast = function (message, type = 'info') {
-        var toastHtml = `
-            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'primary'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-
-        // Create toast container if it doesn't exist
-        if ($('#toast-container').length === 0) {
-            $('body').append('<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>');
-        }
-
-        var $toast = $(toastHtml);
-        $('#toast-container').append($toast);
-
-        var toast = new bootstrap.Toast($toast[0]);
-        toast.show();
-
-        // Remove toast element after it's hidden
-        $toast.on('hidden.bs.toast', function () {
-            $(this).remove();
-        });
-    };
-
     // Form validation enhancement
-    $('form').on('submit', function () {
-        var $form = $(this);
-        var $submitBtn = $form.find('button[type="submit"]');
+    //$('form').on('submit', function () {
+    //    var $form = $(this);
+    //    var $submitBtn = $form.find('button[type="submit"]');
 
-        if ($form.valid && $form.valid()) {
-            $submitBtn.prop('disabled', true);
-            var originalText = $submitBtn.html();
-            $submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang xử lý...');
+    //    if ($form.valid && $form.valid()) {
+    //        $submitBtn.prop('disabled', true);
+    //        var originalText = $submitBtn.html();
+    //        $submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang xử lý...');
 
-            // Re-enable button after 10 seconds as fallback
-            setTimeout(function () {
-                $submitBtn.prop('disabled', false);
-                $submitBtn.html(originalText);
-            }, 10000);
-        }
-    });
+    //        // Re-enable button after 10 seconds as fallback
+    //        setTimeout(function () {
+    //            $submitBtn.prop('disabled', false);
+    //            $submitBtn.html(originalText);
+    //        }, 10000);
+    //    }
+    //});
 
     // Auto-refresh transaction status (if on transactions page)
     if (window.location.pathname.includes('/transactions') || window.location.pathname.includes('/Transaction/Details')) {

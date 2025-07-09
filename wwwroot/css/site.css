@@ -1,4 +1,7 @@
-/* Custom styles for SecureEscrow */
+
+.navbar .dropdown-toggle .rounded-circle {
+    object-fit: cover;
+}
 
 /* Hero Section */
 .hero-section {

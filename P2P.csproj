@@ -22,8 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Config\" />
     <Folder Include="wwwroot\assets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\css\siteAdmin.css" />
   </ItemGroup>
 
 </Project>

@@ -1,213 +1,35 @@
-﻿@model SecureEscrow.Models.Transaction
-@inject SecureEscrow.Services.TransactionService TransactionService
-
-@{
-    ViewData["Title"] = $"Chi tiết giao dịch #{Model.Id}";
+﻿@{
+    ViewData["Title"] = "Test Format Money";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="display-6 fw-bold">Chi tiết giao dịch #@Model.Id.ToString().PadLeft(3, '0')</h1>
-                    <p class="text-muted">Thông tin chi tiết về giao dịch của bạn</p>
-                </div>
-                <span class="@TransactionService.GetStatusBadgeClass(Model.Status) fs-6">
-                    @TransactionService.GetStatusDisplayName(Model.Status)
-                </span>
-            </div>
+<h2 class="mb-3">Nhập số tiền (format ngay khi nhập)</h2>
 
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="card shadow">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-info-circle me-2"></i>Thông tin giao dịch
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-sm-4"><strong>Số tiền:</strong></div>
-                                <div class="col-sm-8">@Model.Amount.ToString("N0") VNĐ</div>
-                            </div>
+<input type="text" class="form-control form-control-sm material-price" oninput="formatMoney(event)">
 
-                            <div class="row mb-3">
-                                <div class="col-sm-4"><strong>Người gửi:</strong></div>
-                                <div class="col-sm-8">@Model.SenderName</div>
-                            </div>
+<input type="text" id="AmountInput" class="form-control form-control-sm material-price" required
+       placeholder="Nhập số tiền giao dịch (VND)" oninput="formatMoney(event)">
 
-                            <div class="row mb-3">
-                                <div class="col-sm-4"><strong>Email người gửi:</strong></div>
-                                <div class="col-sm-8">@Model.SenderEmail</div>
-                            </div>
 
-                            <div class="row mb-3">
-                                <div class="col-sm-4"><strong>Người nhận:</strong></div>
-                                <div class="col-sm-8">@Model.RecipientName</div>
-                            </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-                            @if (!string.IsNullOrEmpty(Model.RecipientEmail))
-                            {
-                                <div class="row mb-3">
-                                    <div class="col-sm-4"><strong>Email người nhận:</strong></div>
-                                    <div class="col-sm-8">@Model.RecipientEmail</div>
-                                </div>
-                            }
+<script>
+    function formatMoney(event) {
+        const $input = $(event.target);
+        let value = $input.val();
 
-                            @if (!string.IsNullOrEmpty(Model.Description))
-                            {
-                                <div class="row mb-3">
-                                    <div class="col-sm-4"><strong>Mô tả:</strong></div>
-                                    <div class="col-sm-8">@Model.Description</div>
-                                </div>
-                            }
+        // Loại bỏ tất cả ký tự không phải số
+        value = value.replace(/\D/g, '');
 
-                            @if (!string.IsNullOrEmpty(Model.BankAccount))
-                            {
-                                <div class="row mb-3">
-                                    <div class="col-sm-4"><strong>Tài khoản ngân hàng:</strong></div>
-                                    <div class="col-sm-8">@Model.BankAccount</div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-
-                    <div class="card shadow mt-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-clock me-2"></i>Lịch sử thời gian
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="timeline">
-                                <div class="timeline-item">
-                                    <div class="timeline-marker bg-primary"></div>
-                                    <div class="timeline-content">
-                                        <h6>Giao dịch được tạo</h6>
-                                        <p class="text-muted">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</p>
-                                    </div>
-                                </div>
-
-                                @if (Model.PaidAt.HasValue)
-                                {
-                                    <div class="timeline-item">
-                                        <div class="timeline-marker bg-info"></div>
-                                        <div class="timeline-content">
-                                            <h6>Thanh toán hoàn tất</h6>
-                                            <p class="text-muted">@Model.PaidAt.Value.ToString("dd/MM/yyyy HH:mm:ss")</p>
-                                        </div>
-                                    </div>
-                                }
-
-                                @if (Model.ClaimedAt.HasValue)
-                                {
-                                    <div class="timeline-item">
-                                        <div class="timeline-marker bg-success"></div>
-                                        <div class="timeline-content">
-                                            <h6>Tiền đã được nhận</h6>
-                                            <p class="text-muted">@Model.ClaimedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")</p>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4">
-                    <div class="card shadow">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-key me-2"></i>Mã giao dịch
-                            </h5>
-                        </div>
-                        <div class="card-body text-center">
-                            <div class="transaction-key-display mb-3">
-                                @Model.TransactionKey
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm" onclick="copyTransactionKey()">
-                                <i class="fas fa-copy me-2"></i>Sao chép mã
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="card shadow mt-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-chart-line me-2"></i>Tiến trình
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            @{
-                                var progressValue = Model.Status switch
-                                {
-                                    TransactionStatus.Pending => 25,
-                                    TransactionStatus.Paid => 75,
-                                    TransactionStatus.Completed => 100,
-                                    _ => 0
-                                };
-                            }
-
-                            <div class="progress mb-3" style="height: 15px;">
-                                <div class="progress-bar" role="progressbar" style="width: @progressValue%" aria-valuenow="@progressValue" aria-valuemin="0" aria-valuemax="100">
-                                    @progressValue%
-                                </div>
-                            </div>
-
-                            <p class="text-muted small">
-                                @switch (Model.Status)
-                                {
-                                    case TransactionStatus.Pending:
-                                        @:Đang chờ xử lý thanh toán
-                                        break;
-                                    case TransactionStatus.Paid:
-                                        @:Đang chờ người nhận xác minh
-                                        break;
-                                    case TransactionStatus.Completed:
-                                        @:Tiền đã được giải ngân thành công
-                                        break;
-                                }
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card shadow mt-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-tools me-2"></i>Hành động
-                            </h5>
-                        </div>
-                        <div class="card-body d-grid gap-2">
-                            @if (Model.Status == TransactionStatus.Paid)
-                            {
-                                <a href="@Url.Action("Claim", "Transaction")" class="btn btn-success">
-                                    <i class="fas fa-key me-2"></i>Nhận tiền
-                                </a>
-                            }
-                            <a href="@Url.Action("Transactions", "Home")" class="btn btn-outline-primary">
-                                <i class="fas fa-list me-2"></i>Tất cả giao dịch
-                            </a>
-                            <a href="@Url.Action("Create", "Transaction")" class="btn btn-outline-secondary">
-                                <i class="fas fa-plus me-2"></i>Tạo giao dịch mới
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        function copyTransactionKey() {
-            const transactionKey = '@Model.TransactionKey';
-            navigator.clipboard.writeText(transactionKey).then(function() {
-                alert('Mã giao dịch đã được sao chép!');
-            }, function(err) {
-                console.error('Không thể sao chép: ', err);
-            });
+        if (value === '') {
+            $input.val('');
+            return;
         }
-    </script>
-}
+
+        // Format với dấu chấm
+        let formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        console.log(formattedValue);
+        // Gán lại vào ô input
+        $input.val(formattedValue);
+        
+    }
+</script>

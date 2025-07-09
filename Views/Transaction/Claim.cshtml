@@ -1,141 +1,272 @@
-﻿@model SecureEscrow.Models.ClaimTransactionViewModel
-
-@{
-    ViewData["Title"] = "Nhận giao dịch";
+﻿@{
+    ViewData["Title"] = "Nhập Secret Key";
+    var FeePercent = Context.Session.GetInt32("FeePercent");
 }
 
-<div class="container py-5">
+<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="text-center mb-4">
-                <h1 class="display-5 fw-bold">Nhận giao dịch</h1>
-                <p class="lead text-muted">Nhập mã giao dịch của bạn để xác minh và nhận tiền</p>
-            </div>
 
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-key me-2"></i>Xác minh giao dịch
-                    </h4>
-                </div>
+            <!-- Secret Key Form -->
+            <div id="secretKeySection" class="card shadow-lg rounded-4 mb-4 border-0" style="background: linear-gradient(135deg, #f0f4ff, #e0ecff);">
                 <div class="card-body">
-                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                    {
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            @Model.ErrorMessage
-                        </div>
-                    }
+                    <h3 class="card-title text-center mb-4 text-primary fw-bold">
+                        <i class="bi bi-shield-lock-fill me-2 text-dark"></i>Nhập Secret Key
+                    </h3>
 
-                    @if (!Model.IsVerified)
-                    {
-                        <!-- Verification Form -->
-                        <form asp-action="Verify" method="post">
-                            <div class="mb-3">
-                                <label asp-for="TransactionKey" class="form-label"></label>
-                                <input asp-for="TransactionKey" class="form-control" placeholder="Nhập mã giao dịch được cung cấp bởi người gửi" style="font-family: monospace; font-size: 1.1rem;" />
-                                <span asp-validation-for="TransactionKey" class="text-danger"></span>
-                            </div>
+                    <div id="responseMessage" class="alert d-none text-center"></div>
 
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-search me-2"></i>Xác minh mã giao dịch
-                                </button>
-                            </div>
-                        </form>
-                    }
-                    else
-                    {
-                        <!-- Transaction Verified - Show Details and Claim Form -->
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle me-2"></i>
-                            <strong>Giao dịch đã được xác minh!</strong>
-
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <p class="mb-1"><strong>Số tiền:</strong> @Model.VerifiedTransaction.Amount.ToString("N0") VNĐ</p>
-                                    <p class="mb-1"><strong>Người nhận:</strong> @Model.VerifiedTransaction.RecipientName</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p class="mb-1">
-                                        <strong>Trạng thái:</strong>
-                                        <span class="badge bg-info">@Model.VerifiedTransaction.Status</span>
-                                    </p>
-                                    <p class="mb-1"><strong>Ngày tạo:</strong> @Model.VerifiedTransaction.CreatedAt.ToString("dd/MM/yyyy")</p>
-                                </div>
-                            </div>
+                    <form id="secretKeyForm" class="px-2 px-md-4">
+                        <div class="form-group mb-4">
+                            <label for="SecretKey" class="form-label fs-5 text-dark">🔑 Mã bảo mật (SecretKey)</label>
+                            <input type="text" id="SecretKey" name="SecretKey" class="form-control form-control-lg text-center border-primary rounded-3 shadow-sm" placeholder="Nhập mã 13 ký tự" required maxlength="13" />
                         </div>
 
-                        @if (Model.VerifiedTransaction.Status == TransactionStatus.Paid)
-                        {
-                            <!-- Claim Form -->
-                            <hr class="my-4">
-                            <h5 class="mb-3">Chi tiết nhận tiền</h5>
-
-                            <form asp-action="Claim" method="post">
-                                <input type="hidden" asp-for="TransactionKey" />
-                                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label asp-for="RecipientName" class="form-label"></label>
-                                        <input asp-for="RecipientName" class="form-control" placeholder="Nhập tên đầy đủ của bạn" />
-                                        <span asp-validation-for="RecipientName" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label asp-for="RecipientEmail" class="form-label"></label>
-                                        <input asp-for="RecipientEmail" class="form-control" placeholder="email@example.com" />
-                                        <span asp-validation-for="RecipientEmail" class="text-danger"></span>
-                                    </div>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label asp-for="BankAccount" class="form-label"></label>
-                                    <input asp-for="BankAccount" class="form-control" placeholder="Nhập số tài khoản ngân hàng của bạn" />
-                                    <span asp-validation-for="BankAccount" class="text-danger"></span>
-                                </div>
-
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-success btn-lg">
-                                        <i class="fas fa-unlock me-2"></i>Xác minh & Nhận tiền
-                                    </button>
-                                </div>
-                            </form>
-                        }
-                        else
-                        {
-                            <!-- Transaction not ready for claim -->
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                @switch (Model.VerifiedTransaction.Status)
-                                {
-                                    case TransactionStatus.Pending:
-                                        @:Giao dịch vẫn đang chờ xử lý thanh toán.
-                                        break;
-                                    case TransactionStatus.Completed:
-                                        @:Giao dịch này đã được nhận.
-                                        break;
-                                    default:
-                                        @:Giao dịch không hợp lệ.
-                                        break;
-                                }
-                            </div>
-                        }
-                    }
+                        <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mt-4">
+                            <a href="/" class="btn btn-outline-secondary btn-lg px-4 shadow-sm">
+                                🏠 Về trang chủ
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg px-4 shadow-sm">
+                                ✅ Xác nhận
+                            </button>
+                            
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <div class="mt-4">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Lưu ý:</strong> Đảm bảo rằng thông tin bạn nhập khớp với thông tin được cung cấp bởi người gửi.
-                    Sau khi xác minh thành công, tiền sẽ được chuyển vào tài khoản của bạn trong vòng 24 giờ.
-                </div>
+
+            <!-- Transaction Info + Bank Transfer -->
+            <div id="transactionDetails" class="card shadow-lg rounded-4 p-4 d-none">
+                <h4 class="text-success mb-4">🎉 Giao dịch hợp lệ!</h4>
+                <p><strong>Mã giao dịch:</strong> <span id="transId" class="text-primary fw-semibold"></span></p>
+                <p><strong>Số tiền:</strong> <span id="transAmount" class="text-danger fw-bold fs-5"></span> VND</p>
+                <p><strong>Người gửi:</strong> <span id="senderName" class="text-primary fw-semibold"></span></p>
+                <p><strong>Mô tả:</strong> <span id="description" class="fst-italic"></span></p>
+                <p><strong>Số tiền bạn nhận được:</strong> <span id="transAmountAfter" class="text-danger fw-bold fs-5"></span> VND</p>
+                <hr />
+                <h5 class="mb-3">💸 Nhập thông tin để nhận chuyển khoản:</h5>
+
+                <form id="bankTransferForm">
+                    <div class="form-group mb-3">
+                        <label for="bankSelect">Ngân hàng</label>
+                        <select id="bankSelect" class="form-select" style="width: 100%;" required>
+                            <option value="">-- Chọn ngân hàng --</option>
+                            <option value="VCB">VCB – Ngân hàng TMCP Ngoại thương Việt Nam</option>
+                            <option value="TCB">TCB – Ngân hàng TMCP Kỹ thương Việt Nam</option>
+                            <option value="MBB">MBB – Ngân hàng TMCP Quân đội</option>
+                            <option value="ACB">ACB – Ngân hàng TMCP Á Châu</option>
+                            <option value="BIDV">BIDV – Ngân hàng TMCP Đầu tư và Phát triển Việt Nam</option>
+                            <option value="CTG">CTG – Ngân hàng TMCP Công Thương Việt Nam</option>
+                            <option value="VPB">VPB – Ngân hàng TMCP Việt Nam Thịnh Vượng</option>
+                            <option value="VIB">VIB – Ngân hàng TMCP Quốc tế Việt Nam</option>
+                            <option value="STB">STB – Ngân hàng TMCP Sài Gòn Thương Tín</option>
+                            <option value="HDB">HDB – Ngân hàng TMCP Phát triển TP.HCM</option>
+                            <option value="SHB">SHB – Ngân hàng TMCP Sài Gòn - Hà Nội</option>
+                            <option value="SCB">SCB – Ngân hàng TMCP Sài Gòn</option>
+                            <option value="EXI">EXI – Ngân hàng TMCP Xuất Nhập khẩu Việt Nam</option>
+                            <option value="OCB">OCB – Ngân hàng TMCP Phương Đông</option>
+
+
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="AccountNumber">Số tài khoản</label>
+                        <input type="text" class="form-control" name="AccountNumber" id="AccountNumber" required />
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary btn-lg d-flex justify-content-center align-items-center px-4" id="submitBankBtn">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                            💵 Nhận tiền
+                        </button>
+                    </div>
+
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Toast Container -->
+<div id="toast-container" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1055;"></div>
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            const bankLogos = {
+                "VCB": "https://api.vietqr.io/img/VCB.png",
+                "TCB": "https://api.vietqr.io/img/TCB.png",
+                "MBB": "https://api.vietqr.io/img/MB.png",
+                "ACB": "https://api.vietqr.io/img/ACB.png",
+                "BIDV": "https://api.vietqr.io/img/BIDV.png",
+                "CTG": "https://api.vietqr.io/img/ICB.png",
+                "VPB": "https://api.vietqr.io/img/VPB.png",
+                "VIB": "https://api.vietqr.io/img/VIB.png",
+                "STB": "https://api.vietqr.io/img/STB.png",
+                "HDB": "https://api.vietqr.io/img/HDB.png",
+                "SHB": "https://api.vietqr.io/img/SHB.png",
+                "SCB": "https://api.vietqr.io/img/SCB.png",
+                "EXI": "https://api.vietqr.io/img/EIB.png",
+                "OCB": "https://api.vietqr.io/img/OCB.png"
+            };
+
+            function formatBank(bank) {
+                if (!bank.id) return bank.text;
+                const logo = bankLogos[bank.id] || "";
+                return $(`<span><img src="${logo}" class="me-2" style="height: 20px"/>${bank.text}</span>`);
+            }
+
+            $('#bankSelect').select2({
+                templateResult: formatBank,
+                templateSelection: formatBank,
+                minimumResultsForSearch: 5,
+                width: '100%'
+            });
+
+            $('#secretKeyForm').on('submit', function (e) {
+                e.preventDefault();
+                const key = $('#SecretKey').val();
+
+                $.ajax({
+                    url: '/Transaction/Claim',
+                    type: 'POST',
+                    data: { secretKey: key },
+                    success: function (res) {
+                        const alert = $('#responseMessage');
+                        alert.removeClass('d-none alert-danger alert-success');
+
+                        if (res.success) {
+                            showToast(res.message, "success");
+
+                            const transAmountAfter=res.transaction.amount*(1-@FeePercent/100);
+
+                            $('#secretKeySection').fadeOut(400);
+                            $('#transactionDetails').removeClass('d-none');
+
+
+                            $('#transId').text(res.transaction.transactionId);
+                            $('#transAmount').text(res.transaction.amount.toLocaleString());
+                            $('#transAmountAfter').text(transAmountAfter.toLocaleString());
+                            $('#description').text(res.transaction.description);
+                            $('#senderName').text(res.senderName);
+                        } else {
+                            alert.addClass('alert-danger').text(res.message);
+                            showToast(res.message, "error");
+                        }
+                    },
+                    error: function () {
+                        showToast("Lỗi trong quá trình xử lý!", "error");
+                    }
+                });
+            });
+
+            function showToast(message, type = "success") {
+                const toastId = "toast-" + Date.now();
+                const bgColor = type === "error" ? "bg-danger" : "bg-success";
+                const icon = type === "error" ? "❌" : "✅";
+
+                const toast = `
+                    <div id="${toastId}" class="toast text-white ${bgColor} border-0 show mb-2 shadow" style="min-width: 320px;">
+                        <div class="d-flex">
+                            <div class="toast-body d-flex align-items-center">
+                                <span class="me-2">${icon}</span> ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>`;
+
+                $('#toast-container').append(toast);
+                setTimeout(() => {
+                    $(`#${toastId}`).fadeOut(400, () => $(`#${toastId}`).remove());
+                }, 3000);
+            }
+                        // Sự kiện submit form nhận tiền
+                $('#bankTransferForm').on('submit', function (e) {
+                    e.preventDefault();
+
+                    const bank = $('#bankSelect').val();
+                    const accountNumber = $('#AccountNumber').val().trim();
+                    const transId = $('#transId').text().trim(); // dùng .text() thay vì .val()
+
+                    if (!bank || !accountNumber) {
+                        showToast("Vui lòng điền đầy đủ thông tin ngân hàng và số tài khoản!", "error");
+                        return;
+                    }
+
+                    const $btn = $('#submitBankBtn');
+                    const $spinner = $btn.find('.spinner-border');
+
+                    // Hiện loading
+                    $btn.prop('disabled', true);
+                    $spinner.removeClass('d-none');
+
+                    $.ajax({
+                        url: '/Transaction/ConfirmBanking',
+                        type: 'POST',
+                        data: {
+                            bankCode: bank,
+                            accountNumber: accountNumber,
+                            transactionId: transId
+                        },
+                        success: function (res) {
+                            if (res.success) {
+                                showSuccessPopup("🎉 Hoàn thành giao dịch", "Tiền sẽ được chuyển đến tài khoản của bạn.");
+                            } else {
+                                showToast(res.message || "Có lỗi xảy ra!", "error");
+                            }
+                        },
+                        error: function () {
+                            showToast("Không thể kết nối tới máy chủ!", "error");
+                        },
+                        complete: function () {
+                            // Tắt loading sau khi hoàn tất
+                            $btn.prop('disabled', false);
+                            $spinner.addClass('d-none');
+                        }
+                    });
+                });
+
+
+            // Hiển thị popup hoàn thành giao dịch
+            function showSuccessPopup(title, message) {
+                const modalHtml = `
+                    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-success shadow">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title" id="successModalLabel">${title}</h5>
+                                </div>
+                                <div class="modal-body fs-5 text-center">
+                                    ${message}
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal" id="confirmDoneBtn">OK</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                $('body').append(modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                modal.show();
+
+                $('#confirmDoneBtn').on('click', function () {
+                    window.location.href = '/'; // Quay lại trang chủ
+                });
+
+                // Cleanup modal khi đóng
+                $('#successModal').on('hidden.bs.modal', function () {
+                    $('#successModal').remove();
+                });
+            }
+        });
+    </script>
 }

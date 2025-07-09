@@ -1,10 +1,13 @@
-using P2P.Models;
+﻿using P2P.Models;
 using Microsoft.EntityFrameworkCore;
+using P2P.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient(); // 👈 Thêm dòng này để dùng HttpClient
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -13,7 +16,9 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddControllersWithViews();
+// Smtp config và email service
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddTransient<EmailService>();
 
 var app = builder.Build();
 
@@ -26,15 +31,17 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseSession();
+
+app.UseSession(); // Session phải nằm sau StaticFiles và trước Routing
+
 app.UseRouting();
 
 app.UseAuthorization();
 
+// Map routes
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-);
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

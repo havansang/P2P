@@ -1,0 +1,121 @@
+﻿$(document).ready(function () {
+    const $form = $('#registrationForm');
+    const $submitBtn = $form.find('button[type="submit"]');
+    const originalText = $submitBtn.html();
+    const $sendCodeBtn = $('#sendCodeBtn');
+    // Gửi mã xác nhận
+    $("#sendCodeBtn").click(function () {
+        const email = $("input[name='email']").val();
+
+        if (!email) {
+            showToast("Vui lòng nhập email trước khi gửi mã.", "error");
+            return;
+        }
+        $(this).prop("disabled", true).addClass("disabled");
+        $.get("/Account/SendVerificationCode", { email }, function (res) {
+            if (res.success) {
+                showToast(res.message, "success");
+                startCountdown();
+            } else {
+                showToast(res.message, "error");
+            }
+        }).fail(function () {
+            showToast("Không thể gửi mã xác nhận. Vui lòng thử lại.", "error");
+        });
+    });
+
+    // Submit form
+    $form.on('submit', function (e) {
+        e.preventDefault();
+
+        $submitBtn.prop('disabled', true);
+        $submitBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang xử lý...');
+
+        $.post("/Account/Register", $form.serialize())
+            .done(function (res) {
+                if (res.success) {
+                    showToast("Đăng ký thành công! Đang chuyển hướng...", "success");
+                    setTimeout(() => {
+                        window.location.href = res.redirectUrl || "/";
+                    }, 2000);
+                } else {
+                    showToast(res.message, "error");
+                }
+            })
+            .fail(function () {
+                showToast("Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.", "error");
+            })
+            .always(function () {
+                $submitBtn.prop('disabled', false);
+                $submitBtn.html(originalText);
+            });
+    });
+
+    // Countdown gửi lại mã
+    function startCountdown() {
+        let countdown = 30;
+        const $btn = $("#sendCodeBtn");
+
+        $btn.prop("disabled", true).text(`Gửi lại (${countdown}s)`);
+        const timer = setInterval(() => {
+            countdown--;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                $btn.prop("disabled", false).text("Gửi mã");
+            } else {
+                $btn.text(`Gửi lại (${countdown}s)`);
+                $sendCodeBtn.prop('disabled', false).removeClass('disabled');
+            }
+        }, 1000);
+    }
+
+    // Nút ẩn hiện mật khẩu
+    $('#togglePassword').on('click', function () {
+        const input = $('#password');
+        const icon = $('#eyeIcon1');
+        const isHidden = input.attr('type') === 'password';
+        input.attr('type', isHidden ? 'text' : 'password');
+        icon.toggleClass('bi-eye bi-eye-slash');
+    });
+
+    $('#toggleConfirmPassword').on('click', function () {
+        const input = $('#confirmPassword');
+        const icon = $('#eyeIcon2');
+        const isHidden = input.attr('type') === 'password';
+        input.attr('type', isHidden ? 'text' : 'password');
+        icon.toggleClass('bi-eye bi-eye-slash');
+    });
+    function showToast(message, type = "success") {
+        const toastId = "toast-" + Date.now();
+
+        let bgColor = "bg-success";
+        let iconHtml = '<i class="fas fa-check-circle me-2 text-white"></i>'; // Icon mặc định
+
+        if (type === "error" || type === "danger") {
+            bgColor = "bg-danger";
+            iconHtml = '<i class="fas fa-exclamation-triangle me-2 text-warning"></i>';
+        }
+
+        const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center text-white ${bgColor} border-0 show mb-2 shadow" role="alert" aria-live="assertive" aria-atomic="true"
+             style="min-width: 320px;">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center">
+                    ${iconHtml}
+                    <span>${message}</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>`;
+
+        $("#toast-container").append(toastHtml);
+
+        // Tự động ẩn sau 4 giây
+        setTimeout(() => {
+            $(`#${toastId}`).fadeOut(300, function () {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+  
+});

@@ -1,0 +1,56 @@
+﻿html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+}
+/* Thêm vào file site.css hoặc file CSS tương ứng */
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.navbar {
+    background-color: white !important;
+}
+
+/* Thêm padding cho body để nội dung không bị che */
+body {
+    padding-top: 70px; /* Điều chỉnh theo chiều cao thực tế của header */
+}
+
+/* Style khi cuộn trang */
+header.scrolled {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Điều chỉnh cho mobile */
+@media (max-width: 992px) {
+    header {
+        position: relative;
+    }
+
+    body {
+        padding-top: 0;
+    }
+}

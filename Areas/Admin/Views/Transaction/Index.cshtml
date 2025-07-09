@@ -1,0 +1,191 @@
+﻿@{
+    ViewData["Title"] = "Quản lý giao dịch";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var FeePercent = Context.Session.GetInt32("FeePercent");
+}
+
+<div class="container-fluid">
+    <h2 class="mb-4">Danh sách giao dịch</h2>
+
+    <ul class="nav nav-pills mb-3" id="statusTabs">
+        <li class="nav-item">
+            <a class="nav-link active" data-status="0" href="#">Tất cả</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-status="1" href="#">Chưa nhập mã</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-status="2" href="#">Đã nhập mã</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-status="3" href="#">Đã hủy</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-status="4" href="#">Hết hạn</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-status="5" href="#">Hoàn thành</a>
+        </li>
+    </ul>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-primary">
+                <tr>
+                    <th>Hành động</th>
+                    <th>ID của giao dịch</th>
+                    <th>Người gửi</th>
+                    <th>Người nhận</th>
+                    <th>Tổng tiền</th>
+                    <th>Mô tả</th>
+                    <th>Trạng thái</th>
+                    <th>Key</th>
+                    <th>Ngày tạo</th>
+                    <th>Ngày nhận</th>
+                    <th>Ngày hết hạn</th>
+                    <th>Tranh chấp</th>
+                    <th>Lý do</th>
+                    <th>Ngày</th>
+                    <th>Phương thức</th>
+                    <th>Ngân hàng</th>
+                    <th>Số TK</th>
+                    <th>Tiền phải chuyển</th>
+                </tr>
+            </thead>
+            <tbody id="transactionTable"></tbody>
+        </table>
+    </div>
+</div>
+<div id="toast-container" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1055;">
+</div>
+@section Scripts {
+    <script>
+        let currentStatusFilter = 0;
+
+        $(document).ready(function () {
+            loadTransactions();
+
+            $('#statusTabs .nav-link').on('click', function (e) {
+                e.preventDefault();
+                $('#statusTabs .nav-link').removeClass('active');
+                $(this).addClass('active');
+                currentStatusFilter = parseInt($(this).data('status'));
+                loadTransactions();
+            });
+
+            function loadTransactions() {
+                $.get('/Admin/Transaction/GetAll', function (data) {
+                    let rows = '';
+                    const now = new Date();
+
+                    data.forEach(t => {
+                        const expire = t.expireDate ? new Date(t.expireDate) : null;
+                        const isExpired = expire && expire < now;
+                        let status = t.status;
+                        
+                        const feePercent = @FeePercent;
+                        if (status !== 5 && status !== 3 && isExpired) {
+                            status = 4; // hết hạn
+                        }
+
+                        if (currentStatusFilter === 0 || currentStatusFilter === status) {
+                            let action = '';
+                            if (t.status === 2) {
+                                action = `<button class="btn btn-success btn-sm confirm-btn" data-id="${t.id}">Xác nhận hoàn thành</button>`;
+                            }
+
+                            rows += `
+                                <tr>
+                                    <td>${action}</td>
+                                    <td>${t.transactionId}</td>
+                                    <td>${t.senderId}</td>
+                                    <td>${t.receiverId ?? ''}</td>
+                                    <td>${t.amount}</td>
+                                    <td>${t.description ?? ''}</td>
+                                    <td>${getStatusText(status)}</td>
+                                    <td>${t.secretkey ?? ''}</td>
+                                    <td>${formatDate(t.createdDate)}</td>
+                                    <td>${formatDate(t.confirmedDate)}</td>
+                                    <td>${formatDate(t.expireDate)}</td>
+                                    <td>${t.isDisputed ? 'Có' : 'Không'}</td>
+                                    <td>${t.disputedReason ?? ''}</td>
+                                    <td>${formatDate(t.disputedDate)}</td>
+                                    <td>${t.paymentMethod ?? ''}</td>
+                                    <td>${t.bankCode ?? ''}</td>
+                                    <td>${t.accountNumber ?? ''}</td>
+                                    <td>${t.amount*(1-feePercent/100)}</td>
+                                </tr>
+                            `;
+                        }
+                    });
+
+                    $('#transactionTable').html(rows);
+                });
+            }
+
+            function getStatusText(status) {
+                switch (status) {
+                    case 1: return 'Chưa nhập mã';
+                    case 2: return 'Đã nhập mã';
+                    case 3: return 'Đã hủy';
+                    case 4: return 'Hết hạn';
+                    case 5: return 'Hoàn thành';
+                    default: return 'Không rõ';
+                }
+            }
+
+            function formatDate(dateStr) {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN');
+            }
+
+                function showToast(message, type = "success") {
+                        const toastId = "toast-" + Date.now();
+
+                        let bgColor = "bg-success";
+                        let iconHtml = '<i class="fas fa-check-circle me-2 text-white"></i>'; // Icon mặc định
+
+                        if (type === "error" || type === "danger") {
+                            bgColor = "bg-danger";
+                            iconHtml = '<i class="fas fa-exclamation-triangle me-2 text-warning"></i>';
+                        }
+
+                        const toastHtml = `
+                        <div id="${toastId}" class="toast align-items-center text-white ${bgColor} border-0 show mb-2 shadow" role="alert" aria-live="assertive" aria-atomic="true"
+                             style="min-width: 320px;">
+                            <div class="d-flex">
+                                <div class="toast-body d-flex align-items-center">
+                                    ${iconHtml}
+                                    <span>${message}</span>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>`;
+
+                        $("#toast-container").append(toastHtml);
+
+                        // Tự động ẩn sau 4 giây
+                        setTimeout(() => {
+                            $(`#${toastId}`).fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                        }, 3000);
+                    }
+
+            $(document).on('click', '.confirm-btn', function () {
+                const id = $(this).data('id');
+                if (confirm('Xác nhận hoàn thành giao dịch này?')) {
+                    $.post('/Admin/Transaction/ConfirmTransaction', { id: id }, function (res) {
+                        if (res.success) {
+                            showToast("Xác nhận thành công", "success");
+                            loadTransactions();
+                        } else {
+                            alert(res.message || 'Lỗi xác nhận.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

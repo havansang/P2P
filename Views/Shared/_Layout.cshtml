@@ -1,13 +1,27 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var FullName = Context.Session.GetString("FullName");
+
+    var AccountId = Context.Session.GetInt32("AccountId");
+
+    var Role = Context.Session.GetInt32("AccountRole");
+
+    var AvatarUrl = Context.Session.GetString("AvatarUrl");
+    
+}
+
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SecureEscrow</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
+
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
@@ -31,9 +45,43 @@
                             <a class="nav-link" href="@Url.Action("Claim", "Transaction")">Nhận tiền</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Transactions", "Home")">Lịch sử giao dịch</a>
+                            <a class="nav-link" href="@Url.Action("TransactionHistory", "Transaction")">Lịch sử giao dịch</a>
                         </li>
                     </ul>
+                    <ul class="navbar-nav ms-auto">
+                        @if (AccountId > 0)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @if (!string.IsNullOrEmpty(AvatarUrl))
+                                    {
+                                        <img src="@AvatarUrl" alt="Avatar" class="rounded-circle me-2" width="30" height="30" />
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-person-circle fs-4 text-white me-2"></i>
+                                    }
+                                    <span>@FullName</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="@Url.Action("Profile", "Account")">Cá nhân</a></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Settings", "Account")">Cài đặt</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Logout", "Home")">Đăng xuất</a></li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-outline-light me-2" href="@Url.Action("Login", "Home")">Đăng nhập</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-warning" href="@Url.Action("Register", "Account")">Đăng ký</a>
+                            </li>
+                        }
+                    </ul>
+
                 </div>
             </div>
         </nav>
@@ -72,7 +120,7 @@
                         <li><a href="@Url.Action("Index", "Home")" class="text-white-50">Trang chủ</a></li>
                         <li><a href="@Url.Action("Create", "Transaction")" class="text-white-50">Tạo giao dịch</a></li>
                         <li><a href="@Url.Action("Claim", "Transaction")" class="text-white-50">Nhận tiền</a></li>
-                        <li><a href="@Url.Action("Transactions", "Home")" class="text-white-50">Lịch sử giao dịch</a></li>
+                        <li><a href="@Url.Action("TransactionHistory", "Transaction")" class="text-white-50">Lịch sử giao dịch</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
@@ -101,5 +149,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <div id="toast-container" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1055;">
+    </div>
 </body>
 </html>
