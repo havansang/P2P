@@ -168,7 +168,6 @@ namespace P2P.Controllers
                 PhoneNumber = "",
                 Role = 1,
                 AvatarUrl = "",
-                Wallet = 0,
                 IsDelete = false,
                 CreatedDate = DateTime.Now
             };

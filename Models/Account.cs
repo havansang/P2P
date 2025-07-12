@@ -19,8 +19,6 @@ public partial class Account
 
     public string? AvatarUrl { get; set; }
 
-    public decimal? Wallet { get; set; }
-
     public bool? IsDelete { get; set; }
 
     public DateTime? CreatedDate { get; set; }

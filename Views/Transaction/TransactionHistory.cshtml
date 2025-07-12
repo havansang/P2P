@@ -2,11 +2,25 @@
     ViewData["Title"] = "Lịch sử giao dịch";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
+    .tab-btn {
+        border-color: transparent;
+        transition: all 0.3s ease;
+        color: #555;
+        font-size: 16px;
+        margin: 0 20px;
+    }
 
+        .tab-btn.active {
+            border-color: #0d6efd; /* Màu xanh của Bootstrap */
+            color: #0d6efd;
+            font-weight: bold;
+        }
+
+</style>
 <div class="container mt-5">
     <h2 class="text-center mb-4 text-primary">📜 Lịch sử giao dịch</h2>
 
-    <!-- Bộ lọc ngày -->
     <div class="row mb-4">
         <div class="col-md-4">
             <label for="fromDate" class="form-label">Từ ngày</label>
@@ -21,18 +35,23 @@
         </div>
     </div>
 
-    <!-- Bảng giao dịch -->
+    <div class="d-flex justify-content-center mb-4 border-bottom position-relative">
+        <button class="tab-btn px-4 py-2 fw-semibold border-0 bg-transparent border-bottom border-3" id="createdTab">Đã tạo</button>
+        <button class="tab-btn px-4 py-2 fw-semibold border-0 bg-transparent border-bottom border-3" id="joinedTab">Đã tham gia</button>
+    </div>
+
+
     <div class="table-responsive shadow-sm rounded-4">
-        <table class="table table-bordered table-hover text-center align-middle" id="historyTable">
+        <table class="table table-bordered table-hover text-center align-middle">
             <thead class="table-dark">
                 <tr>
                     <th>Mã GD</th>
-                    <th>Ngày tạo</th>
                     <th>Số tiền</th>
-                    <th>Vai trò</th>
-                    <th>Ngày hết hạn</th>
-                    <th>Mô tả</th>
+                    <th>Người liên quan</th>
+                    <th>Ngày tạo</th>
                     <th>Trạng thái</th>
+                    <th>Mô tả</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody id="historyBody">
@@ -41,62 +60,294 @@
         </table>
     </div>
 </div>
+<div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="complaintForm" enctype="multipart/form-data" class="modal-content rounded-4 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="complaintModalLabel">📣 Gửi Khiếu Nại</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="complaintTransactionId" name="transactionId" />
+                <div class="mb-3">
+                    <label for="complaintContent" class="form-label">Nội dung khiếu nại</label>
+                    <textarea id="complaintContent" name="content" class="form-control" rows="4" placeholder="Nhập nội dung khiếu nại..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="complaintFile" class="form-label">Đính kèm tệp (hình ảnh, PDF, v.v.)</label>
+                    <input type="file" id="complaintFile" name="attachments" class="form-control" multiple />
+                    <input type="file" class="form-control" id="complaintFile" name="attachments" multiple onchange="onSelectedFile(event);" />
+                    <div id="AttachFiles" class="rounded border bg-whitesmoke">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="submit" class="btn btn-danger" id="submitComplaintBtn">Gửi Khiếu Nại</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-            function loadHistory() {
-                const from = $('#fromDate').val();
-                const to = $('#toDate').val();
+        let allTransactions = [];
+        let currentTab = 'created';
+        const currentUserId = @Context.Session.GetInt32("AccountId");
+
+        const statusMap = {
+            1: 'Đã nhận ký quỹ',
+            2: 'B đã thực hiện dịch vụ',
+            3: 'Hoàn thành',
+            4: 'Đã hủy',
+            5: 'Đã giải ngân',
+            6: 'Đang khiếu nại'
+        };
+
+        function loadHistory() {
+            const from = $('#fromDate').val();
+            const to = $('#toDate').val();
+
+            $('#historyBody').html('<tr><td colspan="7">⏳ Đang tải dữ liệu...</td></tr>');
+
+            $.post('/Transaction/TransactionHistory', { fromDate: from, toDate: to }, function (res) {
+                if (res.success) {
+                    allTransactions = res.data || [];
+                    renderTable();
+                } else {
+                    $('#historyBody').html('<tr><td colspan="7" class="text-danger">Lỗi khi tải dữ liệu!</td></tr>');
+                }
+            }).fail(function () {
+                $('#historyBody').html('<tr><td colspan="7" class="text-danger">Lỗi kết nối server.</td></tr>');
+            });
+        }
+
+        function renderTable() {
+            const tbody = $('#historyBody');
+            tbody.empty();
+
+            const filtered = allTransactions.filter(t =>
+                currentTab === 'created' ? t.senderId === currentUserId : t.receiverId === currentUserId
+            );
+
+            if (!filtered.length) {
+                tbody.append('<tr><td colspan="7" class="text-muted">Không có giao dịch nào!</td></tr>');
+                return;
+            }
+            filtered.forEach(tran => {
+                const amountText = tran.amount != null ? Number(tran.amount).toLocaleString() + " VND" : "N/A";
+                const createdDate = tran.createdDate ? new Date(tran.createdDate).toLocaleString() : "-";
+                const description = tran.description || "-";
+                const statusText = statusMap[tran.status] || "Không xác định";
+
+                const isSender = tran.senderId === currentUserId;
+                const otherParty = isSender
+                    ? `👤 Người nhận: ${tran.emailReceiver ?? '-'}`
+                    : `👤 Người tạo: ${tran.emailSender ?? '-'}`;
+
+                let actions = '';
+                if (isSender) {
+                    if (tran.status === 1) {
+                        actions = `<button class="btn btn-sm btn-outline-danger cancel-btn" data-id="${tran.transactionId}">Hủy</button>`;
+                    } else if (tran.status === 2) {
+                        actions = `
+                            <button class="btn btn-sm btn-outline-warning complaint-btn" data-id="${tran.transactionId}">Khiếu nại</button>
+                            <button class="btn btn-sm btn-outline-success complete-btn" data-id="${tran.transactionId}">Hoàn thành</button>
+                        `;
+                    } else if(tran.status == 6){
+
+                    }
+                } else {
+                    if (tran.status === 1) {
+                        actions = `<button class="btn btn-sm btn-outline-success perform-btn" data-id="${tran.transactionId}">Đã thực hiện dịch vụ</button>`;
+                    } else if (tran.status === 2) {
+                        actions = `<button class="btn btn-sm btn-outline-warning complete-btn" data-id="${tran.transactionId}">Khiếu nại</button>`;
+                    } else if (tran.status === 3) {
+                        actions = `<button class="btn btn-sm btn-outline-primary claim-btn" data-id="${tran.transactionId}">Nhận tiền</button>`;
+                    }
+                }
+
+                const row = `
+                    <tr>
+                        <td>#${tran.transactionId}</td>
+                        <td class="fw-bold text-danger">${amountText}</td>
+                        <td>${otherParty}</td>
+                        <td>${createdDate}</td>
+                        <td>${statusText}</td>
+                        <td>${description}</td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }
+
+        function switchTab(tabName) {
+                currentTab = tabName;
+
+                $('.tab-btn').removeClass('active');
+                $(`#${tabName}Tab`).addClass('active');
+
+                renderTable();
+        }
+
+        $(function () {
+            loadHistory();
+
+            $('#filterBtn').click(loadHistory);
+
+            $('#createdTab').click(() => switchTab('created'));
+            $('#joinedTab').click(() => switchTab('joined'));
+
+            // Khởi tạo tab mặc định
+            switchTab('created');
+
+            //Nút hủy giao dịch
+            $(document).on('click', '.cancel-btn', function () {
+            const transactionId = $(this).data('id');
+                if (!confirm("Bạn có chắc chắn muốn hủy giao dịch này không?")) return;
+                 const tranId = $(this).data('id');
+                if (!tranId) return;
+
+                window.location.href = `/Transaction/Huy?transactionId=${tranId}`;
+                // $.post('/Transaction/CancelTransaction', { transactionId: transactionId }, function (res) {
+                //     if (res.success) {
+                //         alert(res.message);
+                //         loadHistory();
+                //     } else {
+                //         alert("❌ " + res.message);
+                //     }
+                // }).fail(function () {
+                //     alert("Lỗi kết nối server.");
+                // });
+            });
+
+            //Nút hoàn thành
+            $(document).on('click', '.complete-btn', function () {
+                const transactionId = $(this).data('id');
+
+                if (!confirm("Bạn xác nhận giao dịch đã hoàn thành?")) return;
+
+                $.post('/Transaction/CompleteTransaction', { transactionId }, function (res) {
+                    if (res.success) {
+                        alert(res.message);
+                        loadHistory();
+                    } else {
+                        alert("❌ " + res.message);
+                    }
+                }).fail(function () {
+                    alert("Lỗi kết nối server.");
+                });
+            });
+
+            // Nút khiếu nại
+            // Hiển thị form
+            $(document).on('click', '.complaint-btn', function () {
+                const transactionId = $(this).data('id');
+                $('#complaintTransactionId').val(transactionId);
+                $('#complaintContent').val('');
+                const modal = new bootstrap.Modal(document.getElementById('complaintModal'));
+                modal.show();
+            });
+
+            //Gửi khiếu nại
+            $('#complaintForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const files = $('#complaintFile')[0].files;
+
+                if (files.length > 5) {
+                    alert("❌ Chỉ được gửi tối đa 5 tệp.");
+                    return;
+                }
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const sizeMB = file.size / (1024 * 1024);
+                    if (sizeMB > 100) {
+                        alert(`❌ File "${file.name}" vượt quá giới hạn 100MB.`);
+                        return;
+                    }
+                }
+
+                const formData = new FormData(this);
 
                 $.ajax({
-                    url: '/Transaction/TransactionHistory',
+                    url: '/Transaction/SendComplaint',
                     type: 'POST',
-                    data: {
-                        fromDate: from,
-                        toDate: to
-                    },
+                    data: formData,
+                    contentType: false,
+                    processData: false,
                     success: function (res) {
-                        const tbody = $('#historyBody');
-                        tbody.empty();
                         if (res.success) {
-                            console.log("Dữ liệu nhận được:", res);
-                            if (res.data.length === 0) {
-                                tbody.append('<tr><td colspan="7" class="text-muted">Không có giao dịch nào!</td></tr>');
-                            } else {
-                                res.data.forEach(tran => {
-                                    const amountText = tran.amount !== undefined && tran.amount !== null
-                                        ? tran.amount.toLocaleString() + " VND"
-                                        : "N/A";
-
-                                    const expireDateText = tran.expireDate ?? "-";
-                                    const descriptionText = tran.description ?? "-";
-
-                                    const row = `
-                                        <tr>
-                                            <td>${tran.transactionId}</td>
-                                            <td>${tran.createdDate}</td>
-                                            <td class="text-danger fw-bold">${amountText}</td>
-                                            <td>${tran.isSender ? "🔼 Người gửi" : "🔽 Người nhận"}</td>
-                                            <td>${expireDateText}</td>
-                                            <td>${descriptionText}</td>
-                                            <td>${tran.status}</td>
-                                        </tr>`;
-                                    tbody.append(row);
-                                });
-                            }
+                            alert(res.message);
+                            $('#complaintModal').modal('hide');
+                            loadHistory();
                         } else {
-                            tbody.append('<tr><td colspan="7" class="text-danger">Lỗi khi tải dữ liệu!</td></tr>');
+                            alert("❌ " + res.message);
                         }
                     },
                     error: function () {
-                        $('#historyBody').html('<tr><td colspan="7" class="text-danger">Lỗi kết nối server.</td></tr>');
+                        alert("Lỗi khi gửi khiếu nại.");
                     }
                 });
-            }
+            });
 
-            $('#filterBtn').on('click', loadHistory);
-            loadHistory(); // Tải mặc định
+            //Nút đã thực hiện dịch vụ
+            $(document).on('click', '.perform-btn', function () {
+            const transactionId = $(this).data('id');
+                if (!confirm("Xác nhận đã thực hiện?")) return;
+
+                $.post('/Transaction/PerformTransaction', { transactionId: transactionId }, function (res) {
+                    if (res.success) {
+                        alert(res.message);
+                        loadHistory();
+                    } else {
+                        alert("❌ " + res.message);
+                    }
+                }).fail(function () {
+                    alert("Lỗi kết nối server.");
+                });
+            });
+
+            //Nút nhận tiền
+            $(document).on('click', '.claim-btn', function () {
+                const tranId = $(this).data('id');
+                if (!tranId) return;
+
+                window.location.href = `/Transaction/Claim?transactionId=${tranId}`;
+            });
+
         });
+        //Chọn file
+            var _attachFiles = [];
+
+        async function onSelectedFile(event) {
+
+            var html = '';
+            var fileSelecteds = $('input[name="attachments"]').get(0).files;
+            $.each(fileSelecteds, function (i, file) {
+                _attachFiles.push(file);
+            })
+
+            $.each(_attachFiles, function (key, item) {
+                html += `<p class="m-0 px-1 text-nowrap text-dark a-product-details">${item.name}<span class="text-danger icon-x-span" onclick="return onRemoveFile(${key},0)"><i class="bi bi-x"></i></span></p>`;
+
+            })
+            $('#AttachFiles').html(html);
+        }
+
+        function onRemoveFile(index, fileID) {
+                _attachFiles.splice(index, 1);
+                var html = '';
+                $.each(_attachFiles, function (key, item) {
+                    html += `<p class="m-0 px-1 text-nowrap text-dark a-product-details">${item.name}<span class="text-danger icon-x-span" onclick="return onRemoveFile(${key},${item.id})"><i class="bi bi-x"></i></span></p>`;
+                });
+                $('#AttachFiles').html(html);
+
+            let idFile = parseInt(fileID);
+            if (idFile > 0) lstFileDeleted.push(idFile);
+
+        }
     </script>
+
 }

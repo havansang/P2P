@@ -1,13 +1,16 @@
-﻿@{
+﻿@using P2P.Models.DTOs
+@{
     ViewData["Title"] = "Nhập Secret Key";
     var FeePercent = Context.Session.GetInt32("FeePercent");
+    var amountAfterFee = (decimal)Model.Amount * (1 - (decimal)FeePercent / 100);
 }
+@model ClaimViewModel
 
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
 
-            <!-- Secret Key Form -->
+           @*  <!-- Secret Key Form -->
             <div id="secretKeySection" class="card shadow-lg rounded-4 mb-4 border-0" style="background: linear-gradient(135deg, #f0f4ff, #e0ecff);">
                 <div class="card-body">
                     <h3 class="card-title text-center mb-4 text-primary fw-bold">
@@ -34,16 +37,37 @@
                     </form>
                 </div>
             </div>
-
+ *@
 
             <!-- Transaction Info + Bank Transfer -->
-            <div id="transactionDetails" class="card shadow-lg rounded-4 p-4 d-none">
-                <h4 class="text-success mb-4">🎉 Giao dịch hợp lệ!</h4>
-                <p><strong>Mã giao dịch:</strong> <span id="transId" class="text-primary fw-semibold"></span></p>
-                <p><strong>Số tiền:</strong> <span id="transAmount" class="text-danger fw-bold fs-5"></span> VND</p>
-                <p><strong>Người gửi:</strong> <span id="senderName" class="text-primary fw-semibold"></span></p>
-                <p><strong>Mô tả:</strong> <span id="description" class="fst-italic"></span></p>
-                <p><strong>Số tiền bạn nhận được:</strong> <span id="transAmountAfter" class="text-danger fw-bold fs-5"></span> VND</p>
+            <div id="transactionDetails" class="card shadow-lg rounded-4 p-4">
+                <h4 class="text-success mb-4">🎉 Thông tin giao dịch!</h4>
+
+                <p>
+                    <strong>Mã giao dịch:</strong>
+                    <span id="transId" class="text-primary fw-semibold">@Model.TransactionId</span>
+                </p>
+
+                <p>
+                    <strong>Số tiền:</strong>
+                    <span id="transAmount" class="text-danger fw-bold fs-5">@Model.Amount.ToString("N0")</span> VND
+                </p>
+
+                <p>
+                    <strong>Người gửi:</strong>
+                    <span id="senderName" class="text-primary fw-semibold">@Model.SenderName</span>
+                </p>
+
+                <p>
+                    <strong>Mô tả:</strong>
+                    <span id="description" class="fst-italic">@Model.Description</span>
+                </p>
+
+                <p>
+                    <strong>Số tiền bạn nhận được:</strong>
+                    <span id="transAmountAfter" class="text-danger fw-bold fs-5">@amountAfterFee.ToString("N0")</span> VND
+                </p>
+
                 <hr />
                 <h5 class="mb-3">💸 Nhập thông tin để nhận chuyển khoản:</h5>
 
@@ -131,42 +155,42 @@
                 width: '100%'
             });
 
-            $('#secretKeyForm').on('submit', function (e) {
-                e.preventDefault();
-                const key = $('#SecretKey').val();
+            // $('#secretKeyForm').on('submit', function (e) {
+            //     e.preventDefault();
+            //     const key = $('#SecretKey').val();
 
-                $.ajax({
-                    url: '/Transaction/Claim',
-                    type: 'POST',
-                    data: { secretKey: key },
-                    success: function (res) {
-                        const alert = $('#responseMessage');
-                        alert.removeClass('d-none alert-danger alert-success');
+            //     $.ajax({
+            //         url: '/Transaction/Claim',
+            //         type: 'POST',
+            //         data: { secretKey: key },
+            //         success: function (res) {
+            //             const alert = $('#responseMessage');
+            //             alert.removeClass('d-none alert-danger alert-success');
 
-                        if (res.success) {
-                            showToast(res.message, "success");
+            //             if (res.success) {
+            //                 showToast(res.message, "success");
 
-                            const transAmountAfter=res.transaction.amount*(1-@FeePercent/100);
+            //                 const transAmountAfter=res.transaction.amount*(1-@FeePercent/100);
 
-                            $('#secretKeySection').fadeOut(400);
-                            $('#transactionDetails').removeClass('d-none');
+            //                 $('#secretKeySection').fadeOut(400);
+            //                 $('#transactionDetails').removeClass('d-none');
 
 
-                            $('#transId').text(res.transaction.transactionId);
-                            $('#transAmount').text(res.transaction.amount.toLocaleString());
-                            $('#transAmountAfter').text(transAmountAfter.toLocaleString());
-                            $('#description').text(res.transaction.description);
-                            $('#senderName').text(res.senderName);
-                        } else {
-                            alert.addClass('alert-danger').text(res.message);
-                            showToast(res.message, "error");
-                        }
-                    },
-                    error: function () {
-                        showToast("Lỗi trong quá trình xử lý!", "error");
-                    }
-                });
-            });
+            //                 $('#transId').text(res.transaction.transactionId);
+            //                 $('#transAmount').text(res.transaction.amount.toLocaleString());
+            //                 $('#transAmountAfter').text(transAmountAfter.toLocaleString());
+            //                 $('#description').text(res.transaction.description);
+            //                 $('#senderName').text(res.senderName);
+            //             } else {
+            //                 alert.addClass('alert-danger').text(res.message);
+            //                 showToast(res.message, "error");
+            //             }
+            //         },
+            //         error: function () {
+            //             showToast("Lỗi trong quá trình xử lý!", "error");
+            //         }
+            //     });
+            // });
 
             function showToast(message, type = "success") {
                 const toastId = "toast-" + Date.now();

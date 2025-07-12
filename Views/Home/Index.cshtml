@@ -16,9 +16,9 @@
                     <a href="@Url.Action("Create", "Transaction")" class="btn btn-light btn-lg">
                         <i class="fas fa-plus-circle me-2"></i>Tạo giao dịch
                     </a>
-                    <a href="@Url.Action("Claim", "Transaction")" class="btn btn-outline-light btn-lg">
+@*                     <a href="@Url.Action("Claim", "Transaction")" class="btn btn-outline-light btn-lg">
                         <i class="fas fa-key me-2"></i>Nhận tiền
-                    </a>
+                    </a> *@
                 </div>
             </div>
             <div class="col-lg-6 text-center">
@@ -62,25 +62,34 @@
         <div class="row">
             <div class="col-lg-3 col-md-6 text-center mb-4">
                 <div class="step-number mx-auto mb-3">1</div>
-                <h5>Tạo giao dịch</h5>
-                <p class="text-muted">Người A tạo giao dịch và chuyển tiền vào tài khoản ký quỹ an toàn của chúng tôi.</p>
+                <h5>Tạo giao dịch & Thanh toán</h5>
+                <p class="text-muted">
+                    Bên A đăng nhập và tạo giao dịch mới, nhập đầy đủ thông tin và chuyển tiền vào tài khoản trung gian an toàn. Hệ thống ghi nhận giao dịch và chờ Bên B thực hiện dịch vụ.
+                </p>
             </div>
             <div class="col-lg-3 col-md-6 text-center mb-4">
                 <div class="step-number mx-auto mb-3">2</div>
-                <h5>Tạo mã giao dịch</h5>
-                <p class="text-muted">Hệ thống tạo mã giao dịch duy nhất mà Người A chia sẻ với Người B.</p>
+                <h5>Thực hiện dịch vụ</h5>
+                <p class="text-muted">
+                    Bên B hoàn thành công việc theo thỏa thuận và gửi sản phẩm cho Bên A. Sau đó đăng nhập hệ thống và xác nhận đã hoàn thành công việc.
+                </p>
             </div>
             <div class="col-lg-3 col-md-6 text-center mb-4">
                 <div class="step-number mx-auto mb-3">3</div>
-                <h5>Xác minh & Nhận</h5>
-                <p class="text-muted">Người B nhập mã giao dịch để xác minh và nhận tiền.</p>
+                <h5>Xác nhận hoàn tất</h5>
+                <p class="text-muted">
+                    Bên A kiểm tra sản phẩm và nếu hài lòng sẽ bấm nút Xác nhận hoàn tất trên website để tiến hành giải ngân.
+                </p>
             </div>
             <div class="col-lg-3 col-md-6 text-center mb-4">
                 <div class="step-number mx-auto mb-3">4</div>
-                <h5>Giải ngân</h5>
-                <p class="text-muted">Sau khi xác minh, tiền sẽ được tự động chuyển vào tài khoản của Người B.</p>
+                <h5>Giải ngân & Hoàn tất</h5>
+                <p class="text-muted">
+                    Hệ thống chuyển tiền từ tài khoản trung gian sang Bên B và giao dịch được hoàn thành. Phí dịch vụ được khấu trừ (nếu có).
+                </p>
             </div>
         </div>
+
     </div>
 </section>
 
@@ -99,7 +108,7 @@
                         <i class="fas fa-plus-circle text-primary mb-3" style="font-size: 3rem;"></i>
                         <h4 class="card-title">Tạo giao dịch mới</h4>
                         <p class="card-text text-muted">
-                            Bắt đầu giao dịch ký quỹ mới và nhận mã duy nhất để chia sẻ với người nhận.
+                            Khởi tạo giao dịch mới, nhập thông tin hai bên và chuyển tiền vào tài khoản trung gian an toàn. Hệ thống sẽ theo dõi và đảm bảo giao dịch minh bạch.
                         </p>
                         <a href="@Url.Action("Create", "Transaction")" class="btn btn-primary btn-lg">
                             <i class="fas fa-plus-circle me-2"></i>Tạo giao dịch
@@ -108,7 +117,7 @@
                 </div>
             </div>
 
-            <div class="col-md-6 mb-4">
+@*             <div class="col-md-6 mb-4">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body text-center">
                         <i class="fas fa-key text-success mb-3" style="font-size: 3rem;"></i>
@@ -121,7 +130,7 @@
                         </a>
                     </div>
                 </div>
-            </div>
+            </div> *@
         </div>
     </div>
 </section>

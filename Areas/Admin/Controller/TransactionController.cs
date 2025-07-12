@@ -18,7 +18,7 @@ namespace P2P.Areas.Admin.Controllers
                 return Redirect("/Home/Index");
             }
             var listt = SQLHelper<Fee>.SqlToList("SELECT * FROM [Fee]").FirstOrDefault();
-            HttpContext.Session.SetInt32("FeePercent", listt.Percent);
+            HttpContext.Session.SetInt32("FeePercent", listt.Percent ?? 0);
             ViewBag.Account = acc;
             return View();
         }

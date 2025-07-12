@@ -62,9 +62,10 @@
             if (countdown <= 0) {
                 clearInterval(timer);
                 $btn.prop("disabled", false).text("Gửi mã");
+                $sendCodeBtn.prop('disabled', false).removeClass('disabled');
             } else {
                 $btn.text(`Gửi lại (${countdown}s)`);
-                $sendCodeBtn.prop('disabled', false).removeClass('disabled');
+
             }
         }, 1000);
     }

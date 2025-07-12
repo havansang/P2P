@@ -7,5 +7,5 @@ public partial class Fee
 {
     public int Id { get; set; }
 
-    public int Percent { get; set; }
+    public int? Percent { get; set; }
 }
